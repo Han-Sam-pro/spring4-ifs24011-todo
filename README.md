@@ -25,6 +25,8 @@ URL: http://localhost:8080
 command: `./mvnw test jacoco:report`
 
 command-check: `./mvnw clean test jacoco:check`
+update
+
 
 
 
