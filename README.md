@@ -26,7 +26,6 @@ command: `./mvnw test jacoco:report`
 
 command-check: `./mvnw clean test jacoco:check`
 
-update
 
 
 
