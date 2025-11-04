@@ -19,91 +19,91 @@ public class HomeControllerTest {
         controller = new HomeController();
     }
 
-    // 1. informasiNim
+    // 1. getNimInformation
     @Test
-    void testInformasiNim_Valid() {
-        String result = controller.informasiNim("11S23001");
+    void testGetNimInformation_Valid() {
+        String result = controller.getNimInformation("11S23001");
         assertTrue(result.contains("Sarjana Informatika"));
         assertTrue(result.contains("Angkatan: 2023"));
         assertTrue(result.contains("Urutan: 1"));
     }
 
     @Test
-    void testInformasiNim_Invalid() {
-        assertTrue(controller.informasiNim("123").contains("minimal 8 karakter"));
-        assertTrue(controller.informasiNim(null).contains("minimal 8 karakter"));
+    void testGetNimInformation_Invalid() {
+        assertTrue(controller.getNimInformation("123").contains("minimal 8 karakter"));
+        assertTrue(controller.getNimInformation(null).contains("minimal 8 karakter"));
     }
 
     @Test
-    void testInformasiNim_UnknownProdi() {
-        assertTrue(controller.informasiNim("99X23123").contains("Unknown"));
+    void testGetNimInformation_UnknownProdi() {
+        assertTrue(controller.getNimInformation("99X23123").contains("Unknown"));
     }
 
-    // 2. perolehanNilai
+    // 2. calculateFinalScore
     @Test
-    void testPerolehanNilai_Valid() {
+    void testCalculateFinalScore_Valid() {
         String data = "UAS|85|40\nUTS|75|30\nPA|90|20\nK|100|10\n---\n";
         String b64 = Base64.getEncoder().encodeToString(data.getBytes());
-        String result = controller.perolehanNilai(b64);
+        String result = controller.calculateFinalScore(b64);
         assertTrue(result.contains("84.50"));
         assertTrue(result.contains("Total Bobot: 100%"));
         assertTrue(result.contains("Grade: B"));
     }
 
     @Test
-    void testPerolehanNilai_CoversBobotPositive() {
+    void testCalculateFinalScore_CoversBobotPositive() {
         // INI YANG MENUTUP 1% TERAKHIR!
         // 80 * 100% = 80.00 → PASTI masuk if (bobot > 0)
         String data = "Tugas|80|100\n---\n";
         String b64 = Base64.getEncoder().encodeToString(data.getBytes());
-        String result = controller.perolehanNilai(b64);
+        String result = controller.calculateFinalScore(b64);
         assertEquals("Nilai Akhir: 80.00 (Total Bobot: 100%)\nGrade: B", result);
     }
 
     @Test
-    void testPerolehanNilai_InvalidBase64() {
-        assertThrows(IllegalArgumentException.class, () -> controller.perolehanNilai("!@#"));
+    void testCalculateFinalScore_InvalidBase64() {
+        assertThrows(IllegalArgumentException.class, () -> controller.calculateFinalScore("!@#"));
     }
 
     @Test
-    void testPerolehanNilai_EmptyData() {
+    void testCalculateFinalScore_EmptyData() {
         String data = "---\n";
         String b64 = Base64.getEncoder().encodeToString(data.getBytes());
-        String result = controller.perolehanNilai(b64);
+        String result = controller.calculateFinalScore(b64);
         assertEquals("Nilai Akhir: 0.00 (Total Bobot: 0%)\nGrade: E", result);
     }
 
     @Test
-    void testPerolehanNilai_InvalidLine() {
+    void testCalculateFinalScore_InvalidLine() {
         String data = "Invalid|abc|def\n---\n";
         String b64 = Base64.getEncoder().encodeToString(data.getBytes());
-        String result = controller.perolehanNilai(b64);
+        String result = controller.calculateFinalScore(b64);
         assertEquals("Nilai Akhir: 0.00 (Total Bobot: 0%)\nGrade: E", result);
     }
 
-    // 3. perbedaanL
+    // 3. calculatePathDifference
     @Test
-    void testPerbedaanL_Valid() {
+    void testCalculatePathDifference_Valid() {
         String b64 = Base64.getEncoder().encodeToString("UULL".getBytes());
-        String result = controller.perbedaanL(b64);
+        String result = controller.calculatePathDifference(b64);
         assertTrue(result.contains("UULL -> (-2, 2)"));
         assertTrue(result.contains("DDRR -> (2, -2)"));
         assertTrue(result.contains("Perbedaan Jarak: 8"));
     }
 
     @Test
-    void testPerbedaanL_EmptyPath() {
+    void testCalculatePathDifference_EmptyPath() {
         String b64 = Base64.getEncoder().encodeToString("".getBytes());
-        String result = controller.perbedaanL(b64);
+        String result = controller.calculatePathDifference(b64);
         assertTrue(result.contains(" -> (0, 0)"));
         assertTrue(result.contains(" -> (0, 0)"));
         assertTrue(result.contains("Perbedaan Jarak: 0"));
     }
 
     @Test
-    void testPerbedaanL_CoversAllDirections() throws Exception {
-        Method reverse = HomeController.class.getDeclaredMethod("reversePath", String.class);
-        Method endpoint = HomeController.class.getDeclaredMethod("calculateEndPoint", String.class);
+    void testCalculatePathDifference_CoversAllDirections() throws Exception {
+        Method reverse = HomeController.class.getDeclaredMethod("getReversedPath", String.class);
+        Method endpoint = HomeController.class.getDeclaredMethod("findPathEndpoint", String.class);
         reverse.setAccessible(true);
         endpoint.setAccessible(true);
 
@@ -118,39 +118,39 @@ public class HomeControllerTest {
         assertArrayEquals(new int[]{1, 0}, (int[]) endpoint.invoke(controller, "R"));
     }
 
-    // 4. palingTer
+    // 4. findMostFrequentTerWord
     @Test
-    void testPalingTer_Valid() {
+    void testFindMostFrequentTerWord_Valid() {
         String text = "terbaik Terbaik terbaik";
         String b64 = Base64.getEncoder().encodeToString(text.getBytes());
-        String result = controller.palingTer(b64);
+        String result = controller.findMostFrequentTerWord(b64);
         assertTrue(result.contains("'terbaik'"));
         assertTrue(result.contains("muncul 3 kali"));
     }
 
     @Test
-    void testPalingTer_NoTer() {
+    void testFindMostFrequentTerWord_NoTer() {
         String b64 = Base64.getEncoder().encodeToString("hello world".getBytes());
-        assertEquals("Tidak ditemukan kata yang berawalan 'ter'.", controller.palingTer(b64));
+        assertEquals("Tidak ditemukan kata yang berawalan 'ter'.", controller.findMostFrequentTerWord(b64));
     }
 
     @Test
-    void testPalingTer_MultipleTer() {
+    void testFindMostFrequentTerWord_MultipleTer() {
         String text = "terbaik termahal terpendek";
         String b64 = Base64.getEncoder().encodeToString(text.getBytes());
-        String result = controller.palingTer(b64);
+        String result = controller.findMostFrequentTerWord(b64);
         assertTrue(result.contains("muncul 1 kali"));
     }
 
-    // Tutup calculateGrade
+    // Tutup determineGrade
     @Test
-    void testCalculateGrade_Coverage() throws Exception {
-        Method method = HomeController.class.getDeclaredMethod("calculateGrade", double.class);
+    void testDetermineGrade_Coverage() throws Exception {
+        Method method = HomeController.class.getDeclaredMethod("determineGrade", double.class);
         method.setAccessible(true);
         assertEquals("A", method.invoke(controller, 90.0));
         assertEquals("B", method.invoke(controller, 80.0));
         assertEquals("C", method.invoke(controller, 70.0));
         assertEquals("D", method.invoke(controller, 60.0));
         assertEquals("E", method.invoke(controller, 50.0));
-}
+    }
 }

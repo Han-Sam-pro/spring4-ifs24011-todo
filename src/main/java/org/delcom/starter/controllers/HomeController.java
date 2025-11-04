@@ -23,7 +23,7 @@ public class HomeController {
 
     // 1. Informasi NIM
     @GetMapping("/informasi-nim")
-    public String informasiNim(@RequestParam String nim) {
+    public String getNimInformation(@RequestParam String nim) {
         if (nim == null || nim.length() < 8) {
             return "NIM tidak valid: minimal 8 karakter.";
         }
@@ -52,8 +52,8 @@ public class HomeController {
 
     // 2. Perolehan Nilai
     @GetMapping("/perolehan-nilai")
-    public String perolehanNilai(@RequestParam String strBase64) {
-        String data = decodeBase64(strBase64);
+    public String calculateFinalScore(@RequestParam String strBase64) {
+        String data = decodeBase64String(strBase64);
         String[] lines = data.split("\n");
 
         double totalNilai = 0.0;
@@ -81,13 +81,13 @@ public class HomeController {
             }
         }
 
-        String grade = calculateGrade(totalNilai);
+        String grade = determineGrade(totalNilai);
 
         return String.format("Nilai Akhir: %s (Total Bobot: %d%%)\nGrade: %s",
                 df.format(totalNilai), totalBobot, grade);
     }
 
-    private String calculateGrade(double nilai) {
+    private String determineGrade(double nilai) {
         if (nilai >= 85) return "A";
         if (nilai >= 75) return "B";
         if (nilai >= 65) return "C";
@@ -97,11 +97,11 @@ public class HomeController {
 
     // 3. Perbedaan L dan Kebalikannya
     @GetMapping("/perbedaan-l")
-    public String perbedaanL(@RequestParam String strBase64) {
-        String path = decodeBase64(strBase64).trim();
-        int[] end1 = calculateEndPoint(path);
-        String opposite = reversePath(path);
-        int[] end2 = calculateEndPoint(opposite);
+    public String calculatePathDifference(@RequestParam String strBase64) {
+        String path = decodeBase64String(strBase64).trim();
+        int[] end1 = findPathEndpoint(path);
+        String opposite = getReversedPath(path);
+        int[] end2 = findPathEndpoint(opposite);
 
         int distance = Math.abs(end1[0] - end2[0]) + Math.abs(end1[1] - end2[1]);
 
@@ -109,7 +109,7 @@ public class HomeController {
                 path, end1[0], end1[1], opposite, end2[0], end2[1], distance);
     }
 
-    private int[] calculateEndPoint(String path) {
+    private int[] findPathEndpoint(String path) {
         int x = 0, y = 0;
         for (char c : path.toCharArray()) {
             switch (c) {
@@ -122,7 +122,7 @@ public class HomeController {
         return new int[]{x, y};
     }
 
-    private String reversePath(String path) {
+    private String getReversedPath(String path) {
         StringBuilder sb = new StringBuilder();
         for (char c : path.toCharArray()) {
             switch (c) {
@@ -137,8 +137,8 @@ public class HomeController {
 
     // 4. Paling Ter
     @GetMapping("/paling-ter")
-    public String palingTer(@RequestParam String strBase64) {
-        String text = decodeBase64(strBase64);
+    public String findMostFrequentTerWord(@RequestParam String strBase64) {
+        String text = decodeBase64String(strBase64);
         Map<String, Integer> freq = new HashMap<>();
         String[] words = text.toLowerCase().split("\\W+");
 
@@ -165,12 +165,12 @@ public class HomeController {
     }
 
     // Helper: decode Base64
-    private String decodeBase64(String strBase64) {
+    private String decodeBase64String(String strBase64) {
         try {
             byte[] bytes = Base64.getDecoder().decode(strBase64);
             return new String(bytes);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Input Base64 tidak valid.");
-}
-}
+        }
+    }
 }
